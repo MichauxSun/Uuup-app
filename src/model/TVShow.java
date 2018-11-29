@@ -4,11 +4,10 @@ import javax.swing.*;
 
 public class TVShow extends Media {
 
-    //REQUIRES: name and date cannot be null objects
     //MODIFIES: this
     //EFFECTS: initialise TVShowName and onScreenDate according to the variables that passed in by calling super
-    public TVShow(String name, String date) {
-       super(name, date);
+    public TVShow(String name, String date, int type) {
+       super(name, date, type);
     }
 
     //EFFECTS: returns the TV Show's name by calling super
@@ -18,7 +17,3 @@ public class TVShow extends Media {
 
 
 }
-
-
-//trying to figure out how to add things like trailer or behindTheScenes
-//todoLater: ********* the onScreenDate should be pull out by using API, need to figure it out later

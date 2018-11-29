@@ -1,15 +1,18 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.Scanner;
+import exceptions.InvalidInputException;
 
-public class Person {
+import java.util.*;
+
+public class Person implements Observer{
     private String userName;
     private String emailAddress;
     private String passWord;
     private String gender;
-    private ArrayList<Media> movieList;
-    private ArrayList<Media> TVShowList;
+
+    private MediaList movieList;
+    private MediaList TVShowList;
+
 
     private static int userNum = 100;
 
@@ -21,26 +24,37 @@ public class Person {
         this.emailAddress = "none";
         this.passWord = "none";
         this.gender = "not specify";
-        this.movieList = new ArrayList<>();
-        this.TVShowList = new ArrayList<>();
+        this.movieList = new MediaList(this);
+        this.TVShowList = new MediaList(this);
     }
 
-    //REQUESTS: Name, Email Address nad Gender cannot be empty
     //MODIFIES: this
     //EFFECTS: constructs a person object with valid personalized information
     public Person(String name, String eAddress, int g) {
-        this.userName = name;
-        this.emailAddress = eAddress;
-//        userNum++;
-        String gen;
-        if(g == 1) { gen = "Female"; }
-        else if(g == 2) { gen = "Male"; }
-        else if(g == 3) { gen = "Trans"; }
-        else {gen = "rather not tell"; }
-        this.gender = gen;
+        if(name == null) {
+            this.userName = "user" + userNum;
+            userNum++;
+        }
+        if(eAddress == null) {
+            this.emailAddress = "none";
+        }
+        else {
+            this.userName = name;
+            this.emailAddress = eAddress;
+        }
+        this.gender = setGender(g);
+        this.movieList = new MediaList(this);
+        this.TVShowList = new MediaList(this);
+    }
 
-        this.movieList = new ArrayList<>();
-        this.TVShowList = new ArrayList<>();
+    //EFFECTS: return person's gender in string according to their input
+    public String setGender(int g) {
+        String gender;
+        if(g == 1) { gender = "Female"; }
+        else if(g == 2) { gender = "Male"; }
+        else if(g == 3) { gender = "Trans"; }
+        else {gender = "rather not tell"; }
+        return gender;
     }
 
     public void setPassword(String pw) {
@@ -51,27 +65,57 @@ public class Person {
         return this.userName;
     }
 
-    //MODIFIES: this
-    //EFFECTS: add the movie to the movieList if it isn't already in the list
-    public void addToMediaList(Media aMedia, ArrayList<Media> mediaList) {
-        boolean added = false;
-        if(!containMedia(aMedia, mediaList)) {
-            mediaList.add(aMedia);
-//          System.out.println("Success! "); I want this message shows in a pop up window when running the app
-            added = true;
+    //MODIFIES: MediaDataBase dataBase
+    //EFFECTS: add movies and TV shows to this person's two wish lists respectively based on their input numbers
+//    public void addToWishList(String numbers, MediaDataBase movieDataBase, MediaDataBase tvShowDataBase) throws InvalidInputException {
+//        String[] numberList = numbers.split(" ");
+//        for(String num: numberList) {
+//            int favNum = Integer.parseInt(num);
+//            Media aMedia;
+//            int boundSize = movieDataBase.getMediaDataBaseSize() + tvShowDataBase.getMediaDataBaseSize();
+//            InputIdentifier identifier = new InputIdentifier();
+//            int number = identifier.identifyInput(favNum, boundSize);
+//
+//            if(number <= movieDataBase.getMediaDataBaseSize()) {
+//                aMedia = movieDataBase.getAMedia(number);
+//                movieList.addToMediaList(aMedia);
+//
+//            }
+//            else if(number <= (movieDataBase.getMediaDataBaseSize() + tvShowDataBase.getMediaDataBaseSize())){
+//                aMedia = tvShowDataBase.getAMedia(number - movieDataBase.getMediaDataBaseSize());
+//                TVShowList.addToMediaList(aMedia);
+//            }
+//        }
+//    }
+
+    public void addToWishList(String mediarName, MediaDataBase movieDataBase, MediaDataBase tvShowDataBase) throws InvalidInputException {
+        Media aMedia;
+        if(movieDataBase.containMedia(mediarName)) {
+            aMedia = movieDataBase.getAMedia(mediarName);
+            movieList.addToMediaList(aMedia);
         }
-        if(!added) {
-            System.out.println("This " + aMedia.getClass() + " is already in your list.");
+        else {
+            aMedia = tvShowDataBase.getAMedia(mediarName);
+            TVShowList.addToMediaList(aMedia);
         }
+
+    }
+    //EFFECTS: returns the movieList
+    public MediaList getMovieList() {
+        return this.movieList;
+    }
+    //EFFECTS: returns the TVShowList
+    public MediaList getTVShowList() {
+        return this.TVShowList;
     }
 
-    //REQUIRES: mediaList is not null
-    //EFFECTS: returns true if the mediaList contains the Media, false otherwise
-    public boolean containMedia(Media aMedia, ArrayList<Media> mediaList) {
-        for(Media m: mediaList) {
-            if(m.getMediaName().equals(aMedia.getMediaName())) {return true;}
+    public void deleteFromWishList(int deleteNum, String type) {
+        if(type.equals("M")) {
+            movieList.deleteMedia(deleteNum);
         }
-        return false;
+        else {
+            TVShowList.deleteMedia(deleteNum);
+        }
     }
 
     //EFFECTS: prints out the user's information
@@ -79,80 +123,10 @@ public class Person {
         System.out.println(userName + '\n' + "email: " + emailAddress + '\n' + "Password: " + passWord + '\n' + "Gender: " + gender);
     }
 
-    //EFFECTS: prints out the user's information
-    public void printOutWishList() {
-        System.out.println("**************************************************************************************");
-        if(movieList.size() == 0) {
-            if(TVShowList.size() == 0) {
-                System.out.println("Ops, there is nothing in your wish list. Go add some ~.");
-            }
-            else {
-                System.out.println("Your TVShow Wish List: ");
-                for(Media d: TVShowList) {
-                    System.out.println(d.getMediaName()+ ", On Screen Date: " + d.getOnScreenDate() + '\n');
-                }
-            }
-        }
-        else {
-            if(TVShowList.size() == 0) {
-                System.out.println("Your Movie Wish List: ");
-                for(Media m: movieList) {
-                    System.out.println(m.getMediaName()+ ", On Screen Date: " + m.getOnScreenDate() + '\n');
-                }
-            }
-            else {
-                System.out.println("Your Movie Wish List: ");
-                for(Media m: movieList) {
-                    System.out.println(m.getMediaName()+ ", On Screen Date: " + m.getOnScreenDate() + '\n');
-                }
-                System.out.println("Your TVShow Wish List: ");
-                for(Media d: TVShowList) {
-                    System.out.println(d.getMediaName()+ ", On Screen Date: " + d.getOnScreenDate() + '\n');
-                }
-            }
-        }
-        System.out.println("**************************************************************************************");
-
-    }
-
-    //REQUESTS: the number contain in the String must be bigger than 0 and less than the sum of movie and TV show data base size
-    //MODIFIES: MediaDataBase dataBase
-    //EFFECTS: add movies and TV shows to this person's two wish lists respectively
-    public void addToWishList(String favNumber, MediaDataBase movieDataBase, MediaDataBase tvShowDataBase) {
-        Scanner sc = new Scanner(favNumber);
-        while(sc.hasNextInt()) {
-            int number = sc.nextInt();
-            Media aMedia;
-            if(number <= movieDataBase.getMediaDataBaseSize()) {
-                aMedia = movieDataBase.getAMedia(number);
-                addToMediaList(aMedia, movieList);
-            }
-            else {
-                aMedia = tvShowDataBase.getAMedia(number - movieDataBase.getMediaDataBaseSize());
-                addToMediaList(aMedia, TVShowList);
-            }
-
-        }
-    }
-
-    //REQUIRES: deleteNumber should be > movieList.size() and < 1
-    //MODIFIES: this
-    //EFFECTS: remove selected media from the wish list
-    public void deleteFromWishList(int deleteNumber, String mediaType) {
-        if(mediaType.equals("M") || mediaType.equals("m")) {
-            movieList.remove(deleteNumber - 1);
-        }
-        else {
-            TVShowList.remove(deleteNumber - 1);
-        }
-    }
-
-        //EFFECTS: returns the movieList
-    public ArrayList<Media> getMovieList() {
-        return this.movieList;
-    }
-    //EFFECTS: returns the TVShowList
-    public ArrayList<Media> getTVShowList() {
-        return this.TVShowList;
+    @Override
+    public void update(Observable o, Object arg) {
+        Media aMedia = (Media) o; //Media is an abstract class, could be Movie or TVShow that be passed in
+        int numOfLikers = aMedia.getNumOfFollower();
+        System.out.println("There are " + numOfLikers + " users that also like " + aMedia.getMediaName());
     }
 }

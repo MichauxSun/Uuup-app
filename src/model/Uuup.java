@@ -1,6 +1,12 @@
 package model;
 
+import exceptions.InputOutOfRangeException;
+import exceptions.InvalidInputException;
+import exceptions.NegativeNumException;
+
 import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Uuup {
@@ -8,48 +14,155 @@ public class Uuup {
     private MediaDataBase tvShowDataBase;
     private ArrayList<Person> userList;
 
+    private CatchException newCatch;
+
+
     public Uuup() {
         movieDataBase = new MovieDatabase("MovieList1.txt");
         tvShowDataBase = new TVShowDatabase("TVShowList1.txt");
         userList = new ArrayList<>();
+        newCatch = new CatchException();
     }
 
     public void run() {
-        Person user1 = new Person();
-        user1.printOutProfileInfo();
-        userChooseFavMedia(user1);
-        userSignOut(user1);
-
-        Person user2 = userSignIn();
-        userChooseFavMedia(user2);
-        userSignOut(user2);
+//        Person user1 = new Person();
+//        user1.printOutProfileInfo();
+//        userChooseFavMedia(user1);
+//        deleteOrSignOut(user1);
+//
+//        Person user2 = userSignIn();
+//        userChooseFavMedia(user2);
+//        deleteOrSignOut(user2);
 
         movieDataBase.writeIntoDatabase(userList);
 
     }
 
-    //MODIFIES: user
-    //EFFECTS: ask for user's fav media number and add them into their wish list
+    public ArrayList<Person> getUserList() {
+        return this.userList;
+    }
+
+    public void addUser(Person user) {
+        userList.add(user);
+    }
+
+    public void deleteOrSignOut(Person user) {
+        int num;
+        printOutUserWishLists(user);
+
+        do {
+            System.out.println("Want to delete a Media or keep adding or Sign out? (1: delete Movie; 2: delete TVShow; 3: keep adding; 4: Sign out)");
+            Scanner sc = new Scanner(System.in);
+            int selection = sc.nextInt();
+            num = newCatch.catchExceptions(new InputIdentifier(), selection, 4); // only have options 1, 2, 3, 4
+            if(num == 1) {
+                deleteFromList(user.getMovieList(), user, "M");
+            }
+            else if(num == 2) {
+                deleteFromList(user.getTVShowList(), user, "TV");
+            }
+            else if(num == 3) {
+                userChooseFavMedia(user);
+                printOutUserWishLists(user);
+            }
+        }while(num != 4);
+
+        userSignOut(user);
+
+    }
+
+    public void deleteFromList(MediaList aMediaList, Person user, String type) {
+        if(aMediaList.getSize() != 0) {
+            int deleteNum = askForDeleteNum(aMediaList.getSize());
+            user.deleteFromWishList(deleteNum - 1, type);
+            System.out.println("Now your list is: ");
+            printOutUserWishLists(user);
+        }
+        else {
+            String mediaType;
+            if(type.equals("M")) {
+                mediaType = "Movie";
+            }
+            else {
+                mediaType = "TCShow";
+            }
+            System.out.println("There is nothing left in your" + mediaType + " List.");
+        }
+    }
+
+    public int askForDeleteNum(int boundSize) {
+        int deleteNum = -1;
+        do {
+            System.out.println("Please enter your delete number: ");
+            Scanner sc = new Scanner(System.in);
+            int num = sc.nextInt();
+            deleteNum = newCatch.catchExceptions(new InputIdentifier(), num, boundSize);
+
+        }while(deleteNum == -1);
+        return deleteNum;
+    }
+
     private void userChooseFavMedia(Person user) {
         movieDataBase.printMediaDataBase("Movie", 1);
         System.out.println();
         tvShowDataBase.printMediaDataBase("TVShow", movieDataBase.getMediaDataBaseSize() + 1);
         System.out.println("Adding your favorite Movie/TVShow by entering the number in front of it");
-        //p2: add TVShow and Movie to each wishList respectively
         Scanner sc2 = new Scanner(System.in);
-        System.out.println("Please enter here: ");
-        String favNumber2 = sc2.nextLine();
-        user.addToWishList(favNumber2, movieDataBase, tvShowDataBase);
+
+        boolean validChoose = false;
+        do {
+            System.out.println("Please enter here: ");
+            String favNumber2 = sc2.nextLine();
+            try {
+                user.addToWishList(favNumber2, movieDataBase, tvShowDataBase);
+                validChoose = true;
+
+            } catch(NegativeNumException e) {
+                String err = e.getErrorMessege();
+                System.out.println(err + " Please choose again.");
+
+            } catch(InputOutOfRangeException e) {
+                String err = e.getErrorMessege();
+                System.out.println(err + " Please choose again.");
+
+            } catch(InvalidInputException e) {
+                String err = e.getErrorMessege();
+                System.out.println(err + " Please choose again.");
+            }
+        }while(!validChoose);
+
+    }
+
+    public Person getLatestUser() {
+        int currentSize = userList.size();
+        if(currentSize < 1) {
+            return null;
+        }
+        return this.userList.get(currentSize - 1);
+    }
+
+    public int getMovieDatabaseSize() {
+        return movieDataBase.getMediaDataBaseSize();
+    }
+
+    public int getTVShowDatabaseSize() {
+        return tvShowDataBase.getMediaDataBaseSize();
+    }
+
+    public MediaDataBase getMovieDataBase() {
+        return this.movieDataBase;
+    }
+
+    public MediaDataBase getTvShowDataBase() {
+        return this.tvShowDataBase;
     }
 
     //MODIFIES: this
     //EFFECTS: prints out user wishList into console and add this user into user List
     private void userSignOut(Person user) {
-        user.printOutWishList();
-        userList.add(user);
+        printOutUserWishLists(user);
     }
 
-    //REQUIRES: user inputs cannot be null
     //EFFECTS: creates a user with personalised user name and password and prints out the user info into the console
     public Person userSignIn(){
         Scanner sc = new Scanner(System.in);
@@ -80,6 +193,62 @@ public class Uuup {
         user.printOutProfileInfo();
 
         return user;
+    }
+
+    //EFFECTS: prints out the user's information
+//    public void printOutUserWishLists(Person user) {
+//        MediaList movieList = user.getMovieList();
+//        MediaList tvshowList = user.getTVShowList();
+//        System.out.println("**************************************************************************************");
+//        if(movieList.getSize() == 0) {
+//            if(tvshowList.getSize() == 0) {
+//                System.out.println("Ops, there is nothing in your wish list. Go add some ~.");
+//            }
+//            else {
+//                System.out.println("Your TVShow Wish List: ");
+//                tvshowList.printOutList();
+//            }
+//        }
+//        else {
+//            if(tvshowList.getSize() == 0) {
+//                System.out.println("Your Movie Wish List: ");
+//                movieList.printOutList();
+//            }
+//            else {
+//                System.out.println("Your Movie Wish List: ");
+//                movieList.printOutList();
+//                System.out.println("Your TVShow Wish List: ");
+//                tvshowList.printOutList();
+//            }
+//        }
+//        System.out.println("**************************************************************************************");
+//
+//    }
+
+    public String printOutUserWishLists(Person user) {
+        String list = "";
+        if(user == null) {
+            return list;
+        }
+        MediaList movieList = user.getMovieList();
+        MediaList tvshowList = user.getTVShowList();
+        if(movieList.getSize() == 0) {
+            if(tvshowList.getSize() == 0) {
+                list = "Ops, there is nothing in your wish list. Go add some ~.";
+            }
+            else {
+                list = "Your TVShow Wish List: " + '\n' + tvshowList.printOutList();
+            }
+        }
+        else {
+            if(tvshowList.getSize() == 0) {
+                list = "Your Movie Wish List: " + '\n' + movieList.printOutList();
+            }
+            else {
+                list = "Your Movie Wish List: " + '\n' + movieList.printOutList() + '\n' + "Your TVShow Wish List: " + '\n' + tvshowList.printOutList();
+            }
+        }
+        return list;
     }
 
 }

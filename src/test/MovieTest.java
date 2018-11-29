@@ -9,7 +9,7 @@ class MovieTest {
 
     @BeforeEach
     void runBefore() {
-        movie = new Movie("Venom", "2018,Oct,05");
+        movie = new Movie("Venom", "2018,Oct,05", 1);
     }
 
     @Test

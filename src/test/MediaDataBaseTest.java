@@ -29,13 +29,13 @@ class MediaDataBaseTest {
 
     @Test
     void testGetAMovie() {
-        Media m = new Movie("CreedII", "2018,Nov,21");
+        Media m = new Movie("CreedII", "2018,Nov,21", 1);
         assertEquals(m.getMediaName(), movieDataBase.getAMedia(2).getMediaName());
     }
 
     @Test
     void testGetATVShow() {
-        Media m = new TVShow("StrangerThings-Season3",  "unknown,2019orLater");
+        Media m = new TVShow("StrangerThings-Season3",  "unknown,2019orLater", 2);
         assertEquals(m.getMediaName(), tvShowDataBase.getAMedia(1).getMediaName());
     }
 

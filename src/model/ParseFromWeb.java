@@ -1,46 +1,57 @@
 package model;
 
+import exceptions.MediaNotFoundException;
+
 import java.io.*;
 import java.util.Scanner;
 
 public class ParseFromWeb {
+    private final String FILE_PATH = "/Users/michauxsun/CPSC210/projectw1_team423/";
+    private FileReader fr;
+    private PrintWriter writer = null;
+    private OMDb OMDb;
+    private int numOfMedia;
 
     //EFFECTS: convert URL into JSON and write the information readed from JSON into a new file
-    public int readThenCreateMediaFile(String mediaFile, String mediaType, int mediaNum) {
-        FileReader fr;
-        PrintWriter writer = null;
-        int count = 0;
+    public void readThenCreateMediaFile(String mediaFile, String mediaType, int mediaNum) {
+        numOfMedia = 0;
         try {
             fr = new FileReader(mediaFile);
             BufferedReader br = new BufferedReader(fr);
             if(mediaType.equals("Movie")) {
-                writer = new PrintWriter("/Users/michauxsun/CPSC210/projectw1_team423/MovieList1.txt","UTF-8");
+                writer = new PrintWriter(FILE_PATH + "MovieList1.txt","UTF-8");
             }
             else {
-                writer = new PrintWriter("/Users/michauxsun/CPSC210/projectw1_team423/TVShowList1.txt","UTF-8");
+                writer = new PrintWriter(FILE_PATH + "TVShowList1.txt","UTF-8");
             }
 
             String aLine;
 
-            OBMD obmd = new OBMD();
+            OMDb = new OMDb();
             while((aLine = br.readLine()) != null) {
-                String output = obmd.getLine(aLine);
+                String output = OMDb.getLine(aLine);
                 Scanner sc = new Scanner(output);
                 String mediaName = sc.next();
                 String onScreenDate = sc.nextLine();
                 writer.println(mediaNum + " " + mediaName + " " + onScreenDate);
                 mediaNum++;
-                count++;
+                numOfMedia++;
+                sc.close();
             }
 
-        }catch(IOException e) {
+        } catch(MediaNotFoundException e) {
+            System.out.println("Ops! We don't have this information right now but we are working on it! Come back and try again XD");
+        } catch(IOException e) {
             e.printStackTrace();
-        }finally {
-            if ( writer != null ) {
+        } finally {
+            if (writer != null) {
                 writer.close();
+
             }
         }
-        return count;
+    }
 
+    public int getNumOfMedia() {
+        return numOfMedia;
     }
 }

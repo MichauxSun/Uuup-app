@@ -1,12 +1,14 @@
 package test;
 
+import exceptions.InputOutOfRangeException;
+import exceptions.InvalidInputException;
+import exceptions.NegativeNumException;
 import model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class PersonTest {
     private Person p2;
@@ -21,50 +23,58 @@ class PersonTest {
     }
 
     @Test
-    void testAddNewToMovieList() {
-        Media m1 = new Movie("Venom", "2018,Oct,05");
-        Media m2 = new Movie("CreedII", "2018,Nov,21");
-        Media m3 = new Movie("Spider-Man:IntoTheSpider-Verse", "2018,Dec,14");
-        p2.addToMediaList(m1, p2.getMovieList());
-        p2.addToMediaList(m2, p2.getMovieList());
-        p2.addToMediaList(m3, p2.getMovieList());
-        assertTrue(p2.containMedia(m1, p2.getMovieList()));
-    }
-
-    @Test
-    void testAddDuplicateToMovieList() {
-        Media m1 = new Movie("Venom", "2018,Oct,05");
-        Media m2 = new Movie("CreedII", "2018,Nov,21");
-        Media m3 = new Movie("Spider-Man:IntoTheSpider-Verse", "2018,Dec,14");
-        Media m4 = new Movie("Venom", "2018,Oct,05");
-        p2.addToMediaList(m1, p2.getMovieList());
-        p2.addToMediaList(m2, p2.getMovieList());
-        p2.addToMediaList(m3, p2.getMovieList());
-        p2.addToMediaList(m4, p2.getMovieList());
-        assertTrue(p2.getMovieList().size() == 3);
-    }
-
-    @Test
     void testAddToWishListInMovieList() {
         p2.addToWishList("1", movieDataBase, tvShowDataBase);
-        assertTrue(p2.containMedia(new Movie("Venom", "2018,Oct,05"), p2.getMovieList()));
+        Movie media = new Movie("Venom", "2018,Oct,05", 1);
+        assertTrue(p2.getMovieList().containMedia(media.getMovieName()));
     }
 
     @Test
     void testAddToWishListInTVShowList() {
         p2.addToWishList("6", movieDataBase, tvShowDataBase);
-        assertTrue(p2.containMedia(new TVShow("Westworld-Season3", "2019"), p2.getTVShowList()));
+        TVShow aShow = new TVShow("Westworld-Season3", "2019", 2);
+        assertTrue(p2.getTVShowList().containMedia(aShow.getTVShowName()));
     }
 
     @Test
-    void testDeleteFromWishList() {
-        Media m1 = new Movie("Venom", "2018,Oct,05");
-        Media m2 = new Movie("CreedII", "2018,Nov,21");
-        Media m3 = new Movie("Spider-Man:IntoTheSpider-Verse", "2018,Dec,14");
-        p2.addToMediaList(m1, p2.getMovieList());
-        p2.addToMediaList(m2, p2.getMovieList());
-        p2.addToMediaList(m3, p2.getMovieList());
-        p2.deleteFromWishList(1, "M");
-        assertTrue(p2.getMovieList().size() == 2);
+    void testDeleteFromWishListSafty() {
+        p2.addToWishList("1", movieDataBase, tvShowDataBase);
+        p2.addToWishList("2", movieDataBase, tvShowDataBase);
+        p2.addToWishList("3", movieDataBase, tvShowDataBase);
+        try {
+            p2.deleteFromWishList(1, "M");
+            assertTrue(p2.getMovieList().getSize() == 2);
+        } catch(InvalidInputException e) {
+            fail("shouldn't catch this exception here");
+        }
+
     }
+
+//    @Test
+//    void testDeleteFromWishListWithOverRangeException() {
+//        p2.addToWishList("1", movieDataBase, tvShowDataBase);
+//        p2.addToWishList("2", movieDataBase, tvShowDataBase);
+//        p2.addToWishList("3", movieDataBase, tvShowDataBase);
+//        try {
+//            p2.delecteFromMovieList(4);
+//            fail("should not have catch InvalidInputException here");
+//
+//        } catch(InputOutOfRangeException e) {
+//            System.out.println("Out of range number choosing. Got ya~!");
+//        }
+//    }
+//
+//    @Test
+//    void testDeleteFromWishListWithNegativeNumException() {
+//        p2.addToWishList("1", movieDataBase, tvShowDataBase);
+//        p2.addToWishList("2", movieDataBase, tvShowDataBase);
+//        p2.addToWishList("3", movieDataBase, tvShowDataBase);
+//        try {
+//            p2.delecteFromMovieList(-1);
+//            fail("should not have catch InvalidInputException here");
+//
+//        } catch(NegativeNumException e) {
+//            System.out.println("Negative number choosing. Got ya~!");
+//        }
+//    }
 }
